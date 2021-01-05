@@ -1,0 +1,53 @@
+// vim: ft=groovy
+plugins { 
+  id 'java'
+  id 'application'
+  id 'maven-publish'
+  id 'checkstyle'
+}
+
+repositories {
+    flatDir {
+        dirs "${System.env.JAVA_LIBRARY_PATH}/java" 
+    }
+
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.zookeeper:zookeeper:3.4.0'
+    implementation 'org.apache.hadoop:hadoop-client:2.7.3'
+    implementation 'com.dicl.velox:veloxdfs:1.0'
+
+}
+
+mainClassName = 'org.dicl.velox.benchmark.VDFSLauncher'
+
+// The remaining part is to be compatible with Maven
+jar {
+  manifest {
+    attributes(
+      'Main-Class': 'org.dicl.velox.benchmark.ExampleDriver'
+    )
+  }
+
+  from { 
+    configurations.compile.collect { 
+      it.isDirectory() ? it : zipTree(it) 
+    } 
+  }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'org.dicl.velox'
+            artifactId = 'velox-hadoop'
+            version = '1.0'
+
+            from components.java
+        }
+    }
+}
+
+run.dependsOn 'jar'
